@@ -21,7 +21,7 @@ services:
     network_mode: host                        # Utilize host network stack for seamless communication.
     ipc: host                                 # Shared memory transport with host, e.g. rviz GUIs
 
-    # Deny access
+    # Grant access
     privileged: true
  
     # Linux Capabilities
@@ -40,27 +40,26 @@ services:
       # Display
       - DISPLAY=${DISPLAY}                    # Specify X11 display server.
 
+      # Bash History
+      - HISTSIZE=1000                         # Set maximum number of lines in bash history.
+      - HISTFILE=/home/${USER_USERNAME}/.history_dir/.bash_history
+
       # ROS
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}        # Define ROS domain ID for communication.
-    
-    env_file:
-      - .env
+      - ROS_LOCALHOST_ONLY=0                  # Allow external connections to ROS nodes.
 
     # Volume Configuration
     volumes:
       # Display 
-      - /tmp/.X11-unix/${DISPLAY_NUM}:/tmp/.X11-unix/${DISPLAY_NUM}:rw          # Mounts X11 Socket.
+      - /tmp/.X11-unix/:/tmp/.X11-unix/:rw          # Mounts X11 Socket.
 
-      # SSH
-      #- ${HOME}/.ssh/:${USER_DIR}/.ssh/                   # Mount ssh keys
-
-      # Bash history
-      - ${HOME}/.bash_history.docker:${USER_DIR}/.bash_history   # Mount bash commands history
+      # Bash History
+      - bash_history:/home/${USER_USERNAME}/.history_dir  # Mounts bash history file.
 
       # User Source file
       - ../src/:${WORKSPACE_DIR}/src                      # Syncs the source Directory
 
-      # VScode config files
+      # Vscode config files
       - ../.vscode:${WORKSPACE_DIR}/.vscode               # Mounts vscode config files
 
       # Devcontainer config files
@@ -69,8 +68,6 @@ services:
       # Mount usb devices
       - /dev:/dev:rw                                      # Mounts devices dynamically
 
-      # Mount sound
-      - /run/user/${USER_UID}/pulse:/run/user/1000/pulse  # Mount pulseaudio server socket
 
     device_cgroup_rules:
       # full access
@@ -86,3 +83,6 @@ services:
       - 'c 188:* rwm'
 
     command: sleep infinity
+
+volumes:
+  bash_history:
